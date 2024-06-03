@@ -29,3 +29,9 @@ export const setActiveSheet = (sheetName: string) => {
   SpreadsheetApp.getActive().getSheetByName(sheetName).activate();
   return getSheetsData();
 };
+
+export const getCurrentUser = () => {
+  const email = Session.getActiveUser().getEmail();
+  return email;
+};
+

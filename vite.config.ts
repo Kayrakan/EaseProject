@@ -39,6 +39,11 @@ const clientEntrypoints = [
     filename: 'sidebar-about-page',
     template: 'sidebar-about-page/index.html',
   },
+  {
+    name: 'CLIENT - Ease',
+    filename: 'Ease',
+    template: 'Ease/index.html',
+  },
 ];
 
 const keyPath = resolve(__dirname, './certs/key.pem');
@@ -101,6 +106,9 @@ const clientBuildConfig = ({
           '@emotion/styled',
           'gas-client',
           '@types/react',
+
+          'firebase/app',
+          'firebase/database'
         ],
         output: {
           format: 'iife', // needed to use globals from UMD builds
@@ -115,6 +123,9 @@ const clientBuildConfig = ({
             '@emotion/styled': 'emotionStyled',
             'gas-client': 'GASClient',
             '@types/react': '@types/react',
+
+            'firebase/app': 'firebase',
+            'firebase/database': 'firebase',
           },
         },
         input: resolve(__dirname, clientRoot, template),

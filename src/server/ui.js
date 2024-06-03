@@ -5,9 +5,16 @@ export const onOpen = () => {
     .addItem('Sheet Editor (Bootstrap)', 'openDialogBootstrap')
     .addItem('Sheet Editor (MUI)', 'openDialogMUI')
     .addItem('Sheet Editor (Tailwind CSS)', 'openDialogTailwindCSS')
-    .addItem('About me', 'openAboutSidebar');
+    .addItem('About me', 'openAboutSidebar')
+    .addItem('Ease', 'openEase');
+
 
   menu.addToUi();
+};
+
+export const openEase = () => {
+  const html = HtmlService.createHtmlOutputFromFile('Ease')
+  SpreadsheetApp.getUi().showSidebar(html);
 };
 
 export const openDialog = () => {
