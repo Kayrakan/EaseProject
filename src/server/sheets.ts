@@ -34,4 +34,3 @@ export const getCurrentUser = () => {
   const email = Session.getActiveUser().getEmail();
   return email;
 };
-

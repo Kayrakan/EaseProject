@@ -5,13 +5,14 @@ import { getDatabase, ref, set, get, child } from 'firebase/database';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'YOUR_AUTH_DOMAIN',
-    databaseURL: 'YOUR_DATABASE_URL',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    appId: 'YOUR_APP_ID',
+    apiKey: "AIzaSyD7p-ItPqGTSwXujlwAoKJ2xxzkWyeLCQk",
+    authDomain: "ease-c477e.firebaseapp.com",
+    databaseURL: "https://ease-c477e-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "ease-c477e",
+    storageBucket: "ease-c477e.appspot.com",
+    messagingSenderId: "221227049058",
+    appId: "1:221227049058:web:3b1ab5f688f0e0c98af13b",
+    measurementId: "G-6S21T38W4X"
 };
 
 // Initialize Firebase
@@ -43,3 +44,33 @@ export const getUserOauthInfo = async (userId: string, platform: string) => {
         return null;
     }
 };
+
+//
+// function getFirebaseUrl() {
+//     var projectId = PropertiesService.getScriptProperties().getProperty('FIREBASE_PROJECT_ID');
+//     return 'https://' + projectId + '.firebaseio.com';
+// }
+//
+// function getFirebaseApiKey() {
+//     return PropertiesService.getScriptProperties().getProperty('FIREBASE_API_KEY');
+// }
+//
+// function storeUserData(userId, data) {
+//     var url = getFirebaseUrl() + '/users/' + userId + '.json?auth=' + getFirebaseApiKey();
+//     var options = {
+//         'method': 'PUT',
+//         'contentType': 'application/json',
+//         'payload': JSON.stringify(data)
+//     };
+//     var response = UrlFetchApp.fetch(url, options);
+//     Logger.log(response.getContentText());
+// }
+//
+// function getUserData(userId) {
+//     var url = getFirebaseUrl() + '/users/' + userId + '.json?auth=' + getFirebaseApiKey();
+//     var response = UrlFetchApp.fetch(url);
+//     var data = JSON.parse(response.getContentText());
+//     Logger.log(data);
+//     return data;
+// }
+
