@@ -33,6 +33,20 @@ const EaseApp = () => {
 
     return (
         <div className="p-3 overflow-x-hidden">
+            {/*{userEmail ? (*/}
+            {/*    <p className="text-base">*/}
+            {/*        Welcome, {userEmail}*/}
+            {/*    </p>*/}
+            {/*) : (*/}
+            {/*    <p className="text-base">*/}
+            {/*        Loading...*/}
+            {/*    </p>*/}
+            {/*)}*/}
+            {/*{errorMessage && (*/}
+            {/*    <p className="text-red-500">*/}
+            {/*        {errorMessage}*/}
+            {/*    </p>*/}
+            {/*)}*/}
             <div className="w-full">
                 <div className="flex border-b border-gray-200">
                     <button

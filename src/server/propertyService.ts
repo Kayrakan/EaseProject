@@ -1,25 +1,39 @@
-
 interface PlatformSettings {
-    [key: string]: any;
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    [key: string]: any; // Additional settings specific to the platform
 }
 
-// Function to store platform-specific settings
-export function storePlatformSettings(platform: string, settings: PlatformSettings): void {
+// Function to add a connected platform
+export function addConnectedPlatform(platform: string, settings: PlatformSettings, overwrite: boolean = true): void {
     const userProperties = PropertiesService.getUserProperties();
-    const allSettings = getAllSettings();
-    allSettings[platform] = settings;
-    userProperties.setProperty('platformSettings', JSON.stringify(allSettings));
+    const connectedPlatforms = getConnectedPlatforms();
+
+    if (overwrite || !connectedPlatforms[platform]) {
+        connectedPlatforms[platform] = settings;
+        userProperties.setProperty('connectedPlatforms', JSON.stringify(connectedPlatforms));
+    }
 }
 
-// Function to retrieve platform-specific settings
-export function getPlatformSettings(platform: string): PlatformSettings {
-    const allSettings = getAllSettings();
-    return allSettings[platform] || {};
-}
-
-// Function to get all settings
-export function getAllSettings(): { [platform: string]: PlatformSettings } {
+// Function to remove a connected platform
+export function removeConnectedPlatform(platform: string): void {
     const userProperties = PropertiesService.getUserProperties();
-    const settings = userProperties.getProperty('platformSettings');
-    return settings ? JSON.parse(settings) : {};
+    const connectedPlatforms = getConnectedPlatforms();
+    delete connectedPlatforms[platform];
+    userProperties.setProperty('connectedPlatforms', JSON.stringify(connectedPlatforms));
+}
+
+// Function to get settings of a specific connected platform
+export function getConnectedPlatformSettings(platform: string): PlatformSettings | null {
+    const connectedPlatforms = getConnectedPlatforms();
+    return connectedPlatforms[platform] || null;
+}
+
+// Function to get all connected platforms
+export function getConnectedPlatforms(): { [platform: string]: PlatformSettings } {
+    const userProperties = PropertiesService.getUserProperties();
+    const platforms = userProperties.getProperty('connectedPlatforms');
+    return platforms ? JSON.parse(platforms) : {};
 }

@@ -11,6 +11,7 @@ import {
 import { getSheetsData, addSheet, deleteSheet, setActiveSheet, getCurrentUser } from './sheets';
 
 
+//ga4
 import {
   listGoogleAnalyticsAccounts,
   listGoogleAnalyticsProperties,
@@ -19,6 +20,26 @@ import {
 } from './Google/Analytics/ga4.ts';
 
 
+//check google oauth
+import {
+  authorizeServices,
+  onOpenOauth
+} from './Auth/checkGoogleAuth.ts'
+
+//property service
+import {
+  addConnectedPlatform,
+  removeConnectedPlatform,
+  getConnectedPlatformSettings,
+  getConnectedPlatforms
+} from './propertyService.ts'
+
+//facebook
+import {
+  getOAuthServiceFacebook,
+  authCallbackFacebook,
+  getFacebookOAuthURL
+} from './Auth/facebook.ts'
 
 import { storeUserOauthInfo, getUserOauthInfo } from './firebaseService';
 
@@ -54,5 +75,21 @@ export {
   fetchGoogleAnalyticsData,
 
   storeGoogleAnalyticsToken,
-  getGoogleAnalyticsToken
+  getGoogleAnalyticsToken,
+
+  //check google oauth
+  authorizeServices,
+  onOpenOauth,
+
+  //facebook
+  getOAuthServiceFacebook,
+  authCallbackFacebook,
+  getFacebookOAuthURL,
+
+  //property service
+  addConnectedPlatform,
+  removeConnectedPlatform,
+  getConnectedPlatformSettings,
+  getConnectedPlatforms
+
 };
