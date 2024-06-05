@@ -37,3 +37,13 @@ export function getConnectedPlatforms(): { [platform: string]: PlatformSettings 
     const platforms = userProperties.getProperty('connectedPlatforms');
     return platforms ? JSON.parse(platforms) : {};
 }
+
+export function deleteAllUserProperties() {
+    const userProperties = PropertiesService.getUserProperties();
+    userProperties.deleteAllProperties();
+    Logger.log('All user properties have been deleted.');
+}
+
+// function getAllConnectedPlatforms() {
+//     return getConnectedPlatforms();
+// }

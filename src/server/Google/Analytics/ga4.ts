@@ -19,19 +19,15 @@
 // }
 
 
-interface AnalyticsProperty {
+interface View {
     id: string;
     name: string;
 }
 
-interface GAReportRequest {
-    viewId: string;
-    dateRanges: { startDate: string; endDate: string }[];
-    dimensions: { name: string }[];
-    metrics: { expression: string }[];
+interface AnalyticsProperty {
+    id: string;
+    name: string;
 }
-
-// List all Google Analytics accounts
 
 export const listGoogleAnalyticsAccounts = () => {
     try {
@@ -52,7 +48,6 @@ export const listGoogleAnalyticsAccounts = () => {
     }
 };
 
-// List all properties for a given Google Analytics account
 export const listGoogleAnalyticsProperties = (accountId: string) => {
     try {
         if (!Analytics || !Analytics.Management || !Analytics.Management.Webproperties) {
@@ -73,7 +68,6 @@ export const listGoogleAnalyticsProperties = (accountId: string) => {
     }
 };
 
-// Retrieve metadata (dimensions and metrics) for Google Analytics
 export const getGoogleAnalyticsPropertyMetadata = () => {
     try {
         if (!Analytics || !Analytics.Metadata || !Analytics.Metadata.Columns) {
@@ -96,10 +90,30 @@ export const getGoogleAnalyticsPropertyMetadata = () => {
     }
 };
 
-// Run a report and write the data to a specified sheet
+export const listGoogleAnalyticsViews = (accountId: string, propertyId: string) => {
+    try {
+        if (!Analytics || !Analytics.Management || !Analytics.Management.Profiles) {
+            return { error: 'Google Analytics API is not available' };
+        }
+        const profiles = (Analytics.Management.Profiles.list(accountId, propertyId) as any).items as View[];
+        if (!profiles || profiles.length === 0) {
+            return { error: 'No views found for the selected property' };
+        }
+        const viewData = profiles.map(profile => ({
+            id: profile.id,
+            name: profile.name,
+        }));
+        return { views: viewData };
+    } catch (error) {
+        const e = error as Error;
+        return { error: `Failed to retrieve Google Analytics views: ${e.message}` };
+    }
+};
+
 export const fetchGoogleAnalyticsData = (options: {
     accountId: string;
     propertyId: string;
+    viewId: string;
     dimensions: string[];
     metrics: string[];
     startDate: string;
@@ -107,33 +121,21 @@ export const fetchGoogleAnalyticsData = (options: {
     sheetName: string;
 }) => {
     try {
-        if (!Analyticsreporting || !Analyticsreporting.Reports) {
-            return { error: 'Google Analytics Reporting API is not available' };
+        if (!Analytics || !Analytics.Data || !Analytics.Data.Ga) {
+            return { error: 'Google Analytics API is not available' };
         }
-        const { propertyId, dimensions, metrics, startDate, endDate, sheetName } = options;
-        const reportRequest: GAReportRequest = {
-            viewId: propertyId,
-            dateRanges: [{ startDate, endDate }],
-            dimensions: dimensions.map(dimension => ({ name: dimension })),
-            metrics: metrics.map(metric => ({ expression: metric }))
-        };
+        const { viewId, dimensions, metrics, startDate, endDate } = options;
+        const tableId = 'ga:' + viewId;
+        const metricsString = metrics.join(',');
+        const dimensionsString = dimensions.join(',');
 
-        const response = Analyticsreporting.Reports.batchGet({ reportRequests: [reportRequest] });
-        if (!response.reports || !response.reports[0].data || !response.reports[0].data.rows) {
-            return { error: 'No data returned' };
-        }
+        const report = Analytics.Data.Ga.get(tableId, startDate, endDate, metricsString, {
+            dimensions: dimensionsString
+        });
 
-        const rows = response.reports[0].data.rows.map(row => [
-            ...(row.dimensions || []),
-            ...((row.metrics && row.metrics[0] && row.metrics[0].values) ? row.metrics[0].values : [])
-        ]);
+        // Return the full report for debugging purposes
+        return { report };
 
-        // Write data to the specified Google Sheet
-        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName) || SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
-        sheet.clearContents();
-        sheet.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
-
-        return { data: rows };
     } catch (error) {
         const e = error as Error;
         return { error: `Failed to run report: ${e.message}` };

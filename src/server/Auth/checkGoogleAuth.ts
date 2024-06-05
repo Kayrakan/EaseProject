@@ -1,13 +1,11 @@
 import { addConnectedPlatform, removeConnectedPlatform, getConnectedPlatformSettings } from '../propertyService';
 
 const servicesToCheck = [
-    // {id:'drive', name: 'Google Drive', scope: 'https://www.googleapis.com/auth/drive', platformSettings: { id: 'drive', name: 'Google drive', description: 'Google drive data', icon: 'icon-url' } },
-    // {id:'sheets',  name: 'Google Sheets', scope: 'https://www.googleapis.com/auth/spreadsheets', platformSettings: { id: 'sheets', name: 'Google sheets', description: 'Google sheets data', icon: 'icon-url' } },
-    // {id: 'calender',  name: 'Google Calendar', scope: 'https://www.googleapis.com/auth/calendar', platformSettings: { id: 'calender', name: 'Google calender', description: 'Google calender data', icon: 'icon-url' }},
-    {id: 'analytics',  name: 'Google Analytics', scope: 'https://www.googleapis.com/auth/analytics.readonly', platformSettings: { id: 'analytics', name: 'Google Analytics', description: 'Google Analytics data', icon: 'icon-url' } }
+    { id: 'sheets', name: 'Google Sheets', scope: 'https://www.googleapis.com/auth/spreadsheets', platformSettings: { id: 'sheets', name: 'Google sheets', description: 'Google sheets data', icon: 'icon-url' } },
+    { id: 'analytics', name: 'Google Analytics', scope: 'https://www.googleapis.com/auth/analytics.readonly', platformSettings: { id: 'analytics', name: 'Google Analytics', description: 'Google Analytics data', icon: 'icon-url' } },
+    { id: 'drive', name: 'Google Drive', scope: 'https://www.googleapis.com/auth/drive', platformSettings: { id: 'drive', name: 'Google Drive', description: 'Google Drive data', icon: 'icon-url' } },
 ];
 
-// Function to check authorization for a specific service
 function checkAuthorization(serviceName: string): boolean {
     const authInfo = ScriptApp.getAuthorizationInfo(ScriptApp.AuthMode.FULL);
     if (authInfo.getAuthorizationStatus() === ScriptApp.AuthorizationStatus.REQUIRED) {
@@ -16,17 +14,20 @@ function checkAuthorization(serviceName: string): boolean {
 
     try {
         switch (serviceName) {
-            case 'Google Drive':
-                DriveApp.getFiles();
-                break;
             case 'Google Sheets':
                 SpreadsheetApp.getActiveSpreadsheet();
                 break;
-            case 'Google Calendar':
-                CalendarApp.getCalendarsByName('Default');
-                break;
             case 'Google Analytics':
-                (Analytics as any).Data.Ga.get('ga:XXXXXX', '7daysAgo', 'today', 'ga:sessions');
+                if (typeof Analytics === 'undefined' || typeof Analytics.Management === 'undefined' || typeof Analytics.Management.Accounts === 'undefined') {
+                    throw new Error('Analytics API is not available');
+                }
+                Analytics.Management.Accounts.list();
+                break;
+            case 'Google Drive':
+                if (typeof DriveApp === 'undefined') {
+                    throw new Error('Drive API is not available');
+                }
+                DriveApp.getFiles();
                 break;
             default:
                 throw new Error(`Unknown service: ${serviceName}`);
@@ -42,16 +43,23 @@ function checkAuthorization(serviceName: string): boolean {
     }
 }
 
-// Function to update connected platforms based on authorization status
-function updateConnectedPlatforms() {
+export function updateConnectedPlatforms() {
     servicesToCheck.forEach(service => {
-        const authorized = checkAuthorization(service.name);
-        const existingSettings = getConnectedPlatformSettings(service.name);
-        if (authorized) {
-            if (!existingSettings) {
-                addConnectedPlatform(service.name, service.platformSettings, false);
+        try {
+            const authorized = checkAuthorization(service.name);
+            const existingSettings = getConnectedPlatformSettings(service.name);
+            if (authorized) {
+                if (!existingSettings) {
+                    addConnectedPlatform(service.name, service.platformSettings, false);
+                }
+            } else {
+                if (existingSettings) {
+                    removeConnectedPlatform(service.name);
+                }
             }
-        } else {
+        } catch (error) {
+            console.error(`Error checking authorization for ${service.name}:`, error);
+            const existingSettings = getConnectedPlatformSettings(service.name);
             if (existingSettings) {
                 removeConnectedPlatform(service.name);
             }
@@ -81,6 +89,7 @@ function checkAndTriggerAuthorization() {
 // Function to be called from the Google Apps Script editor or a custom menu
 export function authorizeServices() {
     checkAndTriggerAuthorization();
+    updateConnectedPlatforms();
 }
 
 // Example usage in a custom menu

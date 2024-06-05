@@ -16,14 +16,15 @@ import {
   listGoogleAnalyticsAccounts,
   listGoogleAnalyticsProperties,
   getGoogleAnalyticsPropertyMetadata,
+  listGoogleAnalyticsViews,
   fetchGoogleAnalyticsData,
 } from './Google/Analytics/ga4.ts';
 
 
 //check google oauth
 import {
-  authorizeServices,
-  onOpenOauth
+  updateConnectedPlatforms,
+
 } from './Auth/checkGoogleAuth.ts'
 
 //property service
@@ -31,7 +32,8 @@ import {
   addConnectedPlatform,
   removeConnectedPlatform,
   getConnectedPlatformSettings,
-  getConnectedPlatforms
+  getConnectedPlatforms,
+  deleteAllUserProperties
 } from './propertyService.ts'
 
 //facebook
@@ -73,13 +75,13 @@ export {
   listGoogleAnalyticsProperties,
   getGoogleAnalyticsPropertyMetadata,
   fetchGoogleAnalyticsData,
+  listGoogleAnalyticsViews,
 
   storeGoogleAnalyticsToken,
   getGoogleAnalyticsToken,
 
   //check google oauth
-  authorizeServices,
-  onOpenOauth,
+  updateConnectedPlatforms,
 
   //facebook
   getOAuthServiceFacebook,
@@ -90,6 +92,7 @@ export {
   addConnectedPlatform,
   removeConnectedPlatform,
   getConnectedPlatformSettings,
-  getConnectedPlatforms
+  getConnectedPlatforms,
+  deleteAllUserProperties
 
 };
