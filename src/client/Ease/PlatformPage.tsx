@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { AiOutlineArrowLeft } from 'react-icons/ai';
 import platformComponents from './PlatformComponents';
 
 const PlatformPage: React.FC = () => {
@@ -17,9 +18,9 @@ const PlatformPage: React.FC = () => {
             <div className="p-4">
                 <button
                     onClick={handleBackClick}
-                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                    className="flex items-center p-2 text-black rounded hover:bg-gray-200"
                 >
-                    Back
+                    <AiOutlineArrowLeft className="w-5 h-5" />
                 </button>
                 <h6 className="mt-4 text-lg font-semibold">
                     Platform not found
@@ -29,12 +30,12 @@ const PlatformPage: React.FC = () => {
     }
 
     return (
-        <div className="p-4">
+        <div className="p-2">
             <button
                 onClick={handleBackClick}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                className="flex items-center p-2 text-black rounded hover:bg-gray-200"
             >
-                Back
+                <AiOutlineArrowLeft className="w-5 h-5" />
             </button>
             <PlatformComponent />
         </div>

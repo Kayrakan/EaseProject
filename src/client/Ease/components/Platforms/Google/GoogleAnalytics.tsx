@@ -93,15 +93,11 @@ const GoogleAnalyticsPage = () => {
             try {
                 const response: { dimensions?: Dimension[]; metrics?: Metric[]; error?: string } = await serverFunctions.getGoogleAnalyticsPropertyMetadata(propertyId);
 
-                console.log('dimensions')
-                console.log(response.dimensions)
                 if (response.dimensions && response.metrics) {
                     setDimensionOptions(response.dimensions.map(dim => ({
                         value: dim.apiName,
                         label: dim.uiName || dim.apiName
                     })));
-                    console.log('dimensions')
-                    console.log(dimensionOptions)
                     setMetricOptions(response.metrics.map(metric => ({
                         value: metric.apiName,
                         label: metric.uiName || metric.apiName
@@ -193,8 +189,6 @@ const GoogleAnalyticsPage = () => {
                 endDate,
                 sheetName,
             });
-            console.log('response');
-            console.log(response);
             if (response.data) {
                 setErrorMessage(null);
             } else if (response.error) {
@@ -206,35 +200,77 @@ const GoogleAnalyticsPage = () => {
     };
 
     return (
-        <div className="p-6 bg-white shadow rounded-lg w-full max-w-md mx-auto">
-            <h2 className="text-xl font-semibold mb-4">Google Analytics Page</h2>
-            {errorMessage && <p className="text-red-500 mb-4">{errorMessage}</p>}
+        <div className="p-6 bg-white rounded-lg shadow-lg max-w-2xl mx-auto">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Google Analytics Data Fetcher</h2>
+            {errorMessage && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{errorMessage}</div>}
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Select Account</label>
+                <label className="block text-gray-700 font-medium mb-1">Select Account</label>
                 <Select
                     value={selectedAccount}
                     onChange={handleAccountChange}
                     options={accounts}
-                    className="basic-multi-select"
+                    className="basic-single"
                     classNamePrefix="select"
+                    styles={{
+                        control: (provided) => ({
+                            ...provided,
+                            height: '38px', // Adjust height
+                            minHeight: '38px',
+                            width: '100%', // Adjust width
+                        }),
+                        valueContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                            padding: '0 6px',
+                        }),
+                        input: (provided) => ({
+                            ...provided,
+                            margin: '0px',
+                        }),
+                        indicatorsContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                        }),
+                    }}
                 />
             </div>
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Select Property</label>
+                <label className="block text-gray-700 font-medium mb-1">Select Property</label>
                 <Select
                     value={selectedProperty}
                     onChange={handlePropertyChange}
                     options={properties}
-                    className="basic-multi-select"
+                    className="basic-single"
                     classNamePrefix="select"
+                    styles={{
+                        control: (provided) => ({
+                            ...provided,
+                            height: '38px', // Adjust height
+                            minHeight: '38px',
+                            width: '100%', // Adjust width
+                        }),
+                        valueContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                            padding: '0 6px',
+                        }),
+                        input: (provided) => ({
+                            ...provided,
+                            margin: '0px',
+                        }),
+                        indicatorsContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                        }),
+                    }}
                 />
             </div>
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Date Preset</label>
+                <label className="block text-gray-700 font-medium mb-1">Date Preset</label>
                 <select
                     value={datePreset}
                     onChange={handleDatePresetChange}
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                     <option value="Custom">Custom</option>
                     <option value="Today">Today</option>
@@ -252,27 +288,27 @@ const GoogleAnalyticsPage = () => {
             {datePreset === 'Custom' && (
                 <>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                        <label className="block text-gray-700 font-medium mb-1">Start Date</label>
                         <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">End Date</label>
+                        <label className="block text-gray-700 font-medium mb-1">End Date</label>
                         <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                     </div>
                 </>
             )}
             <div className="mb-4">
-                <label htmlFor="google-analytics-dimensions" className="block text-sm font-medium text-gray-700">Select Dimensions</label>
+                <label htmlFor="google-analytics-dimensions" className="block text-gray-700 font-medium mb-1">Select Dimensions</label>
                 <Select
                     id="dimensions"
                     value={selectedDimensions}
@@ -282,10 +318,31 @@ const GoogleAnalyticsPage = () => {
                     placeholder="Select dimensions"
                     isMulti
                     isSearchable
+                    styles={{
+                        control: (provided) => ({
+                            ...provided,
+                            height: '38px', // Adjust height
+                            minHeight: '38px',
+                            width: '100%', // Adjust width
+                        }),
+                        valueContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                            padding: '0 6px',
+                        }),
+                        input: (provided) => ({
+                            ...provided,
+                            margin: '0px',
+                        }),
+                        indicatorsContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                        }),
+                    }}
                 />
             </div>
             <div className="mb-4">
-                <label htmlFor="google-analytics-metrics" className="block text-sm font-medium text-gray-700">Select Metrics</label>
+                <label htmlFor="google-analytics-metrics" className="block text-gray-700 font-medium mb-1">Select Metrics</label>
                 <Select
                     id="metrics"
                     value={selectedMetrics}
@@ -295,20 +352,41 @@ const GoogleAnalyticsPage = () => {
                     placeholder="Select metrics"
                     isMulti
                     isSearchable
+                    styles={{
+                        control: (provided) => ({
+                            ...provided,
+                            height: '38px', // Adjust height
+                            minHeight: '38px',
+                            width: '100%', // Adjust width
+                        }),
+                        valueContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                            padding: '0 6px',
+                        }),
+                        input: (provided) => ({
+                            ...provided,
+                            margin: '0px',
+                        }),
+                        indicatorsContainer: (provided) => ({
+                            ...provided,
+                            height: '38px',
+                        }),
+                    }}
                 />
             </div>
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Sheet Name</label>
+                <label className="block text-gray-700 font-medium mb-1">Sheet Name</label>
                 <input
                     type="text"
                     value={sheetName}
                     onChange={(e) => setSheetName(e.target.value)}
-                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
             </div>
             <button
                 onClick={handleFetchData}
-                className="mt-4 w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="w-full py-2 px-4 bg-indigo-500 text-white font-semibold rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
                 Fetch Data
             </button>
