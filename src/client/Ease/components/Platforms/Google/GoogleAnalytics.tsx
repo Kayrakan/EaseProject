@@ -37,8 +37,9 @@ const GoogleAnalyticsPage = () => {
     const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
-    const [data, setData] = useState<any[]>([]);
+    // const [data, setData] = useState<any[]>([]);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [sheetName, setSheetName] = useState<string>(''); // Added sheetName state
 
     useEffect(() => {
         const fetchAccounts = async () => {
@@ -104,12 +105,10 @@ const GoogleAnalyticsPage = () => {
                 metrics: selectedMetrics,
                 startDate,
                 endDate,
+                sheetName,
             });
-            console.log('data: ');
-            console.log(response);
-            console.log(response.data);
             if (response.data) {
-                setData(response.data);
+                // setData(response.data);
                 setErrorMessage(null);
             } else if (response.error) {
                 setErrorMessage(typeof response.error === 'string' ? response.error : response.error.message);
@@ -193,20 +192,29 @@ const GoogleAnalyticsPage = () => {
                     className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
             </div>
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Sheet Name</label>
+                <input
+                    type="text"
+                    value={sheetName}
+                    onChange={(e) => setSheetName(e.target.value)}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+            </div>
             <button
                 onClick={handleFetchData}
                 className="mt-4 w-full py-2 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
                 Fetch Data
             </button>
-            {data.length > 0 && (
-                <div className="mt-6">
-                    <h3 className="text-lg font-medium mb-2">Report Data</h3>
-                    <pre className="bg-gray-100 p-4 rounded-md">
-                        {JSON.stringify(data, null, 2)}
-                    </pre>
-                </div>
-            )}
+            {/*{data.length > 0 && (*/}
+            {/*    <div className="mt-6">*/}
+            {/*        <h3 className="text-lg font-medium mb-2">Report Data</h3>*/}
+            {/*        <pre className="bg-gray-100 p-4 rounded-md">*/}
+            {/*            {JSON.stringify(data, null, 2)}*/}
+            {/*        </pre>*/}
+            {/*    </div>*/}
+            {/*)}*/}
         </div>
     );
 };

@@ -65,9 +65,10 @@ export const fetchGoogleAnalyticsData = (options: {
     metrics: string[];
     startDate: string;
     endDate: string;
+    sheetName: string;
 }) => {
     try {
-        const { propertyId, dimensions, metrics, startDate, endDate } = options;
+        const { propertyId, dimensions, metrics, startDate, endDate, sheetName } = options;
 
         const requestData = {
             dimensions: dimensions.map(dimension => ({ name: dimension })),
@@ -86,11 +87,38 @@ export const fetchGoogleAnalyticsData = (options: {
             return { error: 'No data returned' };
         }
 
-        const rows = report.rows.map(row => row.dimensionValues.concat(row.metricValues));
+        // Ensure dimensionHeaders and metricHeaders are present
+        if (!report.dimensionHeaders || !report.metricHeaders) {
+            return { error: 'Missing headers in the report response' };
+        }
+
+        // Write data to Google Sheet
+        const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+        let sheet = spreadsheet.getSheetByName(sheetName);
+
+        if (!sheet) {
+            sheet = spreadsheet.insertSheet(sheetName);
+        } else {
+            sheet.clearContents();
+        }
+
+        const dimensionHeaders = report.dimensionHeaders.map(dh => dh.name);
+        const metricHeaders = report.metricHeaders.map(mh => mh.name);
+        const headers = [...dimensionHeaders, ...metricHeaders];
+
+        sheet.appendRow(headers);
+
+        const rows = report.rows.map(row => {
+            const dimensionValues = row.dimensionValues.map((dv: { value: string }) => dv.value);
+            const metricValues = row.metricValues.map((mv: { value: string }) => mv.value);
+            return [...dimensionValues, ...metricValues];
+        });
+
+        sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+
         return { data: rows };
     } catch (error) {
         const e = error as Error;
         return { error: `Failed to run report: ${e.message}` };
     }
 };
-

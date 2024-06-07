@@ -14,7 +14,11 @@ declare namespace GoogleAppsScript {
                 dimensions: { displayName: string; apiName: string }[];
                 metrics: { displayName: string; apiName: string }[];
             };
-            function runReport(request: any, property: string): { rows: { dimensionValues: any; metricValues: any }[] };
+            function runReport(request: any, property: string): {
+                rows: { dimensionValues: any; metricValues: any }[];
+                dimensionHeaders: { name: string }[];
+                metricHeaders: { name: string }[];
+            };
         }
         function newRunReportRequest(): any;
     }
