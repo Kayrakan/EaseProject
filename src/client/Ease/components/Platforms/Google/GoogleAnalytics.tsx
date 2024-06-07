@@ -46,9 +46,11 @@ const GoogleAnalyticsPage = () => {
     const [datePreset, setDatePreset] = useState<string>('Custom');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [sheetName, setSheetName] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchAccounts = async () => {
+            setLoading(true);
             try {
                 const response: { accounts?: Account[]; error?: string } = await serverFunctions.listGoogleAnalyticsAccounts();
                 if (response.accounts) {
@@ -61,6 +63,7 @@ const GoogleAnalyticsPage = () => {
             } catch (error) {
                 setErrorMessage('Error fetching Google Analytics accounts');
             }
+            setLoading(false);
         };
 
         fetchAccounts();
@@ -69,6 +72,7 @@ const GoogleAnalyticsPage = () => {
     const handleAccountChange = async (selectedOption: SelectOption | null) => {
         setSelectedAccount(selectedOption);
         if (selectedOption) {
+            setLoading(true);
             const accountId = selectedOption.value.split('/').pop() || '';
             try {
                 const response: { properties?: Property[]; error?: string } = await serverFunctions.listGoogleAnalyticsProperties(accountId);
@@ -83,12 +87,14 @@ const GoogleAnalyticsPage = () => {
             } catch (error) {
                 setErrorMessage('Error fetching Google Analytics properties');
             }
+            setLoading(false);
         }
     };
 
     const handlePropertyChange = async (selectedOption: SelectOption | null) => {
         setSelectedProperty(selectedOption);
         if (selectedOption) {
+            setLoading(true);
             const propertyId = selectedOption.value;
             try {
                 const response: { dimensions?: Dimension[]; metrics?: Metric[]; error?: string } = await serverFunctions.getGoogleAnalyticsPropertyMetadata(propertyId);
@@ -110,6 +116,7 @@ const GoogleAnalyticsPage = () => {
             } catch (error) {
                 setErrorMessage('Error fetching Google Analytics property metadata');
             }
+            setLoading(false);
         }
     };
 
@@ -180,6 +187,7 @@ const GoogleAnalyticsPage = () => {
     };
 
     const handleFetchData = async () => {
+        setLoading(true);
         try {
             const response: FetchDataResponse = await serverFunctions.fetchGoogleAnalyticsData({
                 propertyId: selectedProperty?.value || '',
@@ -197,12 +205,14 @@ const GoogleAnalyticsPage = () => {
         } catch (error) {
             setErrorMessage('Error fetching data');
         }
+        setLoading(false);
     };
 
     return (
         <div className="p-6 bg-white rounded-lg shadow-lg max-w-2xl mx-auto">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Google Analytics Data Fetcher</h2>
             {errorMessage && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{errorMessage}</div>}
+            {loading && <div className="text-blue-500 font-medium mb-4">Loading...</div>}
             <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-1">Select Account</label>
                 <Select
