@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { serverFunctions } from '../../utils/serverFunctions';
 import ConnectedPlatforms from './ConnectedPlatforms';
 import ConnectDataSource from './ConnectDataSource';
+
 import { AiOutlineProject, AiOutlinePlusCircle } from 'react-icons/ai';
 
 const EaseApp = () => {

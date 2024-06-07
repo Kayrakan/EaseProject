@@ -16,9 +16,8 @@ import {
   listGoogleAnalyticsAccounts,
   listGoogleAnalyticsProperties,
   getGoogleAnalyticsPropertyMetadata,
-  listGoogleAnalyticsViews,
   fetchGoogleAnalyticsData,
-} from './Google/Analytics/ga4.ts';
+} from './Google/Analytics/ga4';
 
 
 //check google oauth
@@ -40,7 +39,8 @@ import {
 import {
   getOAuthServiceFacebook,
   authCallbackFacebook,
-  getFacebookOAuthURL
+  getFacebookOAuthURL,
+  resetFacebookOAuth,
 } from './Auth/facebook.ts'
 
 import { storeUserOauthInfo, getUserOauthInfo } from './firebaseService';
@@ -75,7 +75,6 @@ export {
   listGoogleAnalyticsProperties,
   getGoogleAnalyticsPropertyMetadata,
   fetchGoogleAnalyticsData,
-  listGoogleAnalyticsViews,
 
   storeGoogleAnalyticsToken,
   getGoogleAnalyticsToken,
@@ -87,6 +86,7 @@ export {
   getOAuthServiceFacebook,
   authCallbackFacebook,
   getFacebookOAuthURL,
+  resetFacebookOAuth,
 
   //property service
   addConnectedPlatform,

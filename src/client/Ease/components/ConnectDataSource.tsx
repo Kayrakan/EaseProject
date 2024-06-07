@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { serverFunctions } from '../../utils/serverFunctions';
 
 // Importing SVG icons
@@ -31,12 +31,14 @@ const ConnectDataSource: React.FC = () => {
     const handleConnect = async (dataSourceId: string) => {
         try {
             console.log(`Connecting to ${dataSourceId}`);
+            let authUrl: string | null = null;
+
             if (dataSourceId === 'google_analytics' || dataSourceId === 'google_ads') {
-                const authUrl = await serverFunctions.getOAuthURL(dataSourceId);
-                window.open(authUrl, '_blank');
+                authUrl = await serverFunctions.getOAuthURL(dataSourceId);
             } else if (dataSourceId === 'facebook_ads') {
-                const authUrl = await serverFunctions.getFacebookOAuthURL();
-                window.open(authUrl, '_blank');
+                authUrl = await serverFunctions.getFacebookOAuthURL();
+                console.log('OAuth URL:', authUrl);
+                // window.open(authUrl, '_blank');
             } else if (dataSourceId === 'snapchat_ads') {
                 // Add logic for Snapchat Ads OAuth
             } else if (dataSourceId === 'criteo') {
@@ -44,9 +46,39 @@ const ConnectDataSource: React.FC = () => {
             } else if (dataSourceId === 'adjust') {
                 // Add logic for Adjust OAuth
             }
+
+            if (authUrl === 'ALREADY_AUTHORIZED') {
+                alert('You are already authorized.');
+            } else if (authUrl) {
+                openPopup(authUrl);
+            }
         } catch (error) {
             setErrorMessage(`Error connecting to ${dataSourceId}: ` + error);
         }
+    };
+
+    const handleReset = async (dataSourceId: string) => {
+        try {
+            if (dataSourceId === 'facebook_ads') {
+                await serverFunctions.resetFacebookOAuth();
+                alert('Facebook OAuth has been reset.');
+            }
+            // Add similar logic for other data sources if needed
+        } catch (error) {
+            setErrorMessage(`Error resetting OAuth for ${dataSourceId}: ` + error);
+        }
+    };
+
+    const openPopup = (url: string) => {
+        const width = 600;
+        const height = 600;
+        const left = (window.innerWidth - width) / 2;
+        const top = (window.innerHeight - height) / 2;
+        window.open(
+            url,
+            'OAuthPopup',
+            `width=${width},height=${height},top=${top},left=${left}`
+        );
     };
 
     const filteredDataSources = dataSources.filter(source =>
@@ -70,14 +102,14 @@ const ConnectDataSource: React.FC = () => {
                     <li
                         key={source.id}
                         className="flex items-center cursor-pointer p-2 border rounded-md hover:bg-gray-100"
-                        onClick={() => handleConnect(source.id)}
                     >
                         <img
                             src={source.icon}
                             alt={source.name}
                             className="w-6 h-6 mr-4"
                         />
-                        <span className="text-sm font-medium">{source.name}</span>
+                        <span className="text-sm font-medium" onClick={() => handleConnect(source.id)}>{source.name}</span>
+                        <button className="ml-auto text-red-500" onClick={() => handleReset(source.id)}>Reset</button>
                     </li>
                 ))}
             </ul>
