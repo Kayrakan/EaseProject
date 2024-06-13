@@ -20,9 +20,25 @@ const EaseApp = () => {
                 setErrorMessage('Error fetching user email: ' + error.message);
             }
         };
-
         fetchUserEmail();
     }, []);
+
+
+    useEffect(() => {
+        const checkOauth = async () => {
+            try {
+                const oauth = await serverFunctions.authorizeServices();
+                console.log('auth check');
+                console.log(oauth);
+            } catch (error) {
+                console.error('Error checking user oauth:', error);
+                setErrorMessage('Error checking user oauth: ' + error.message);
+            }
+        };
+        checkOauth();
+    }, []);
+
+
 
     const handleConnectGA4 = () => {
         console.log('Connect GA4 clicked');

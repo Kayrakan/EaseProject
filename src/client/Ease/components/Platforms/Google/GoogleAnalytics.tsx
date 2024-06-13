@@ -32,6 +32,21 @@ interface SelectOption {
     label: string;
 }
 
+interface UserSavedSettings {
+    id: string;
+    name: string;
+    description: string;
+    selectedAccount: SelectOption | null;
+    selectedProperty: SelectOption | null;
+    selectedDimensions: SelectOption[];
+    selectedMetrics: SelectOption[];
+    startDate: string;
+    endDate: string;
+    datePreset: string;
+    sheetName: string;
+}
+
+
 const GoogleAnalyticsPage = () => {
     const [accounts, setAccounts] = useState<SelectOption[]>([]);
     const [properties, setProperties] = useState<SelectOption[]>([]);
@@ -47,6 +62,13 @@ const GoogleAnalyticsPage = () => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [sheetName, setSheetName] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
+
+
+    const [settingsPanelOpen, setSettingsPanelOpen] = useState(false);
+    const [savedSettings, setSavedSettings] = useState<UserSavedSettings[]>([]);
+
+    const [settingsName, setSettingsName] = useState<string>('');
+
 
     useEffect(() => {
         const fetchAccounts = async () => {
@@ -67,6 +89,8 @@ const GoogleAnalyticsPage = () => {
         };
 
         fetchAccounts();
+
+        fetchSavedSettings();
     }, []);
 
     const handleAccountChange = async (selectedOption: SelectOption | null) => {
@@ -208,11 +232,66 @@ const GoogleAnalyticsPage = () => {
         setLoading(false);
     };
 
+    const fetchSavedSettings = async () => {
+        try {
+            const ga4Settings = await serverFunctions.getConnectedPlatformSettings('Google Analytics');
+            if (ga4Settings && ga4Settings.savedSettings) {
+                setSavedSettings(ga4Settings.savedSettings);
+            }
+        } catch (error) {
+            console.error('Error fetching saved settings', error);
+        }
+    };
+
+    const handleSaveSettings = async () => {
+        const newSetting: UserSavedSettings = {
+            id: `${Date.now()}`,
+            name: settingsName || `Settings ${savedSettings.length + 1}`, // Use user-defined name or default
+            description: 'User saved settings',
+            selectedAccount,
+            selectedProperty,
+            selectedDimensions,
+            selectedMetrics,
+            startDate,
+            endDate,
+            datePreset,
+            sheetName,
+        };
+        try {
+            await serverFunctions.addGa4UserSavedSettings(newSetting);
+            setSavedSettings([...savedSettings, newSetting]);
+            setSettingsName(''); // Clear the settings name input after saving
+        } catch (error) {
+            console.error('Error saving settings', error);
+        }
+    };
+
+    const handleRemoveSetting = async (settingId: string) => {
+        try {
+            console.log('requesting');
+            const settingReponse = await serverFunctions.removeGa4UserSavedSettings(settingId);
+            console.log('setting reponse: ');
+            console.log(settingReponse);
+            setSavedSettings(savedSettings.filter(setting => setting.id !== settingId));
+        } catch (error) {
+            setErrorMessage('Error removing setting');
+        }
+    };
+
+
+
+    useEffect(() => {
+        fetchSavedSettings();
+    }, []);
+
+
     return (
         <div className="p-6 bg-white rounded-lg shadow-lg max-w-2xl mx-auto">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Google Analytics Data Fetcher</h2>
             {errorMessage && <div className="bg-red-100 text-red-700 p-4 rounded mb-4">{errorMessage}</div>}
             {loading && <div className="text-blue-500 font-medium mb-4">Loading...</div>}
+
+
             <div className="mb-4">
                 <label className="block text-gray-700 font-medium mb-1">Select Account</label>
                 <Select
@@ -318,7 +397,8 @@ const GoogleAnalyticsPage = () => {
                 </>
             )}
             <div className="mb-4">
-                <label htmlFor="google-analytics-dimensions" className="block text-gray-700 font-medium mb-1">Select Dimensions</label>
+                <label htmlFor="google-analytics-dimensions" className="block text-gray-700 font-medium mb-1">Select
+                    Dimensions</label>
                 <Select
                     id="dimensions"
                     value={selectedDimensions}
@@ -352,7 +432,8 @@ const GoogleAnalyticsPage = () => {
                 />
             </div>
             <div className="mb-4">
-                <label htmlFor="google-analytics-metrics" className="block text-gray-700 font-medium mb-1">Select Metrics</label>
+                <label htmlFor="google-analytics-metrics" className="block text-gray-700 font-medium mb-1">Select
+                    Metrics</label>
                 <Select
                     id="metrics"
                     value={selectedMetrics}
@@ -400,6 +481,93 @@ const GoogleAnalyticsPage = () => {
             >
                 Fetch Data
             </button>
+
+            <button
+                onClick={() => setSettingsPanelOpen(true)}
+                className="mt-4 w-full py-2 px-4 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            >
+                Manage Settings
+            </button>
+
+
+
+            {/*settings*/}
+            {settingsPanelOpen && (
+                <div className="fixed bottom-0 left-0 right-0 h-1/2 bg-white shadow-lg p-6 overflow-auto z-50 border-t-4 border-gray-200">
+                    <button
+                        onClick={() => setSettingsPanelOpen(false)}
+                        className="mb-4 py-2 px-4 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                    >
+                        Close
+                    </button>
+                    <div className="mb-4">
+                        <label className="block text-gray-700 font-medium mb-1">Settings Name</label>
+                        <input
+                            type="text"
+                            value={settingsName}
+                            onChange={(e) => setSettingsName(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                    </div>
+                    {/*<div className="mb-4">*/}
+                    {/*    <label className="block text-gray-700 font-medium mb-1">Sheet Name</label>*/}
+                    {/*    <input*/}
+                    {/*        type="text"*/}
+                    {/*        value={sheetName}*/}
+                    {/*        onChange={(e) => setSheetName(e.target.value)}*/}
+                    {/*        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"*/}
+                    {/*    />*/}
+                    {/*</div>*/}
+                    <button
+                        onClick={handleSaveSettings}
+                        className="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        Save Settings
+                    </button>
+                    <div className="mt-4">
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">Saved Settings</h3>
+                        {savedSettings.map((setting) => (
+                            <div key={setting.id} className="mb-2 p-2 border border-gray-300 rounded-md">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-medium text-gray-800">{setting.name}</span>
+                                    <div>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedAccount(setting.selectedAccount);
+                                                setSelectedProperty(setting.selectedProperty);
+                                                setSelectedDimensions(setting.selectedDimensions);
+                                                setSelectedMetrics(setting.selectedMetrics);
+                                                setStartDate(setting.startDate);
+                                                setEndDate(setting.endDate);
+                                                setDatePreset(setting.datePreset);
+                                                setSheetName(setting.sheetName);
+                                                setSettingsPanelOpen(false);
+                                            }}
+                                            className="ml-4 py-1 px-2 bg-indigo-500 text-white font-semibold rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        >
+                                            Apply
+                                        </button>
+                                        <button
+                                            onClick={() => handleRemoveSetting(setting.id)}
+                                            className="ml-2 py-1 px-2 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-gray-600">{setting.description}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+
+
+
+            {/*    settings end */}
+
+
         </div>
     );
 };

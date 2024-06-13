@@ -19,10 +19,20 @@ import {
   fetchGoogleAnalyticsData,
 } from './Google/Analytics/ga4';
 
+//facebook ads
+import {
+  fetchFacebookAdsData,
+  fetchFacebookReportStatus,
+  fetchFacebookReportResults,
+  getFacebookAvailableFields,
+} from './Meta/FacebookAds.ts';
+
+
 
 //check google oauth
 import {
   updateConnectedPlatforms,
+  authorizeServices,
 
 } from './Auth/checkGoogleAuth.ts'
 
@@ -32,7 +42,9 @@ import {
   removeConnectedPlatform,
   getConnectedPlatformSettings,
   getConnectedPlatforms,
-  deleteAllUserProperties
+  deleteAllUserProperties,
+  addGa4UserSavedSettings,
+  removeGa4UserSavedSettings
 } from './propertyService.ts'
 
 //facebook
@@ -81,18 +93,27 @@ export {
 
   //check google oauth
   updateConnectedPlatforms,
+  authorizeServices,
 
-  //facebook
+  //facebook oauth
   getOAuthServiceFacebook,
   authCallbackFacebook,
   getFacebookOAuthURL,
   resetFacebookOAuth,
+
+  //facebook ads
+  fetchFacebookAdsData,
+  fetchFacebookReportStatus,
+  fetchFacebookReportResults,
+  getFacebookAvailableFields,
 
   //property service
   addConnectedPlatform,
   removeConnectedPlatform,
   getConnectedPlatformSettings,
   getConnectedPlatforms,
-  deleteAllUserProperties
+  deleteAllUserProperties,
+  addGa4UserSavedSettings,
+  removeGa4UserSavedSettings,
 
 };

@@ -1,9 +1,9 @@
 import { addConnectedPlatform, removeConnectedPlatform, getConnectedPlatformSettings } from '../propertyService';
 
 const servicesToCheck = [
-    { id: 'sheets', name: 'Google Sheets', scope: 'https://www.googleapis.com/auth/spreadsheets', platformSettings: { id: 'sheets', name: 'Google sheets', description: 'Google sheets data', icon: 'icon-url' } },
-    { id: 'analytics', name: 'Google Analytics', scope: 'https://www.googleapis.com/auth/analytics.readonly', platformSettings: { id: 'analytics', name: 'Google Analytics', description: 'Google Analytics data', icon: 'icon-url' } },
-    { id: 'drive', name: 'Google Drive', scope: 'https://www.googleapis.com/auth/drive', platformSettings: { id: 'drive', name: 'Google Drive', description: 'Google Drive data', icon: 'icon-url' } },
+    { id: 'sheets', name: 'Google Sheets', scope: 'https://www.googleapis.com/auth/spreadsheets', platformSettings: { id: 'sheets', name: 'Google sheets', description: 'Google sheets data', icon: 'icon-url', savedSettings:[] } },
+    { id: 'analytics', name: 'Google Analytics', scope: 'https://www.googleapis.com/auth/analytics.readonly', platformSettings: { id: 'analytics', name: 'Google Analytics', description: 'Google Analytics data', icon: 'icon-url', savedSettings:[] } },
+    { id: 'drive', name: 'Google Drive', scope: 'https://www.googleapis.com/auth/drive', platformSettings: { id: 'drive', name: 'Google Drive', description: 'Google Drive data', icon: 'icon-url',savedSettings:[] } },
 ];
 
 function checkAuthorization(serviceName: string): boolean {
@@ -90,6 +90,7 @@ function checkAndTriggerAuthorization() {
 export function authorizeServices() {
     checkAndTriggerAuthorization();
     updateConnectedPlatforms();
+    return 'successfully checked and updated'
 }
 
 // Example usage in a custom menu
