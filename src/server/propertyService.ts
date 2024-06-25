@@ -95,6 +95,19 @@ export function deleteAllUserProperties() {
     Logger.log('All user properties have been deleted.');
 }
 
+export function saveAdjustApiKey(apiKey: string): GoogleAppsScript.Properties.Properties | null {
+    const adjustSettings = getConnectedPlatformSettings('Adjust') || {
+        id: 'adjust',
+        name: 'Adjust',
+        description: '',
+        icon: 'adjustIcon',
+        savedSettings: [],
+    };
+
+    adjustSettings.adjust_api_key = apiKey;
+    return addConnectedPlatform('Adjust', adjustSettings, true);
+}
+
 // function getAllConnectedPlatforms() {
 //     return getConnectedPlatforms();
 // }

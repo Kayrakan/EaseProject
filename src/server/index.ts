@@ -44,7 +44,9 @@ import {
   getConnectedPlatforms,
   deleteAllUserProperties,
   addGa4UserSavedSettings,
-  removeGa4UserSavedSettings
+  removeGa4UserSavedSettings,
+
+  saveAdjustApiKey
 } from './propertyService.ts'
 
 //facebook
@@ -115,5 +117,7 @@ export {
   deleteAllUserProperties,
   addGa4UserSavedSettings,
   removeGa4UserSavedSettings,
+
+  saveAdjustApiKey
 
 };

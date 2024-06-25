@@ -8,6 +8,7 @@ import facebookIcon from './Platforms/icons/facebook.svg';
 import snapchatIcon from './Platforms/icons/snapchat.svg';
 import criteoIcon from './Platforms/icons/criteo.svg';
 import adjustIcon from './Platforms/icons/adjust.svg';
+import { useNavigate } from 'react-router-dom';
 
 interface DataSource {
     name: string;
@@ -27,6 +28,7 @@ const dataSources: DataSource[] = [
 const ConnectDataSource: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const handleConnect = async (dataSourceId: string) => {
         try {
@@ -45,6 +47,8 @@ const ConnectDataSource: React.FC = () => {
                 // Add logic for Criteo OAuth
             } else if (dataSourceId === 'adjust') {
                 // Add logic for Adjust OAuth
+                navigate('/adjust-connect');
+                return;
             }
 
             if (authUrl === 'ALREADY_AUTHORIZED') {
