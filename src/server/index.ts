@@ -28,6 +28,14 @@ import {
 } from './Meta/FacebookAds.ts';
 
 
+//adjust
+import {
+  getAdjustOptions,
+  pullAdjustData,
+  fetchEvents,
+} from './Adjust/Adjust.ts'
+
+
 
 //check google oauth
 import {
@@ -56,6 +64,8 @@ import {
   getFacebookOAuthURL,
   resetFacebookOAuth,
 } from './Auth/facebook.ts'
+
+
 
 import { storeUserOauthInfo, getUserOauthInfo } from './firebaseService';
 
@@ -118,6 +128,11 @@ export {
   addGa4UserSavedSettings,
   removeGa4UserSavedSettings,
 
-  saveAdjustApiKey
+  saveAdjustApiKey,
+
+  //adjust
+  getAdjustOptions,
+  pullAdjustData,
+  fetchEvents,
 
 };

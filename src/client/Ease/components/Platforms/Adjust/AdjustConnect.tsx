@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { serverFunctions } from '../../../../utils/serverFunctions';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate} from "react-router-dom";
+import {AiOutlineArrowLeft} from "react-icons/ai";
 
 const AdjustConnect: React.FC = () => {
     const [apiKey, setApiKey] = useState('');
@@ -17,9 +18,19 @@ const AdjustConnect: React.FC = () => {
             setErrorMessage(`Error saving API key: ` + error);
         }
     };
+    const handleBackClick = () => {
+
+        navigate(-1); // This will navigate back to the previous page
+    };
 
     return (
         <div className="p-4">
+            <button
+                onClick={handleBackClick}
+                className="flex items-center p-2 text-black rounded hover:bg-gray-200"
+            >
+                <AiOutlineArrowLeft className="w-5 h-5" />
+            </button>
             <h1 className="text-2xl font-semibold mb-4">Connect to Adjust</h1>
             {errorMessage && <p className="text-red-500">{errorMessage}</p>}
             <div className="mb-4">
