@@ -25,6 +25,7 @@ import {
   fetchFacebookReportStatus,
   fetchFacebookReportResults,
   getFacebookAvailableFields,
+  fetchFacebookAdAccounts,
 } from './Meta/FacebookAds.ts';
 
 
@@ -35,6 +36,11 @@ import {
   fetchEvents,
 } from './Adjust/Adjust.ts'
 
+import {
+  saveAdjustApiKey,
+  getAdjustApiKeys,
+  deleteAdjustApiKey,
+} from './Properties/adjust/adjust.ts'
 
 
 //check google oauth
@@ -53,8 +59,6 @@ import {
   deleteAllUserProperties,
   addGa4UserSavedSettings,
   removeGa4UserSavedSettings,
-
-  saveAdjustApiKey
 } from './propertyService.ts'
 
 //facebook
@@ -63,6 +67,7 @@ import {
   authCallbackFacebook,
   getFacebookOAuthURL,
   resetFacebookOAuth,
+  getConnectedFacebookAccounts,
 } from './Auth/facebook.ts'
 
 
@@ -112,12 +117,15 @@ export {
   authCallbackFacebook,
   getFacebookOAuthURL,
   resetFacebookOAuth,
+  getConnectedFacebookAccounts,
 
   //facebook ads
   fetchFacebookAdsData,
   fetchFacebookReportStatus,
   fetchFacebookReportResults,
   getFacebookAvailableFields,
+  fetchFacebookAdAccounts,
+
 
   //property service
   addConnectedPlatform,
@@ -128,11 +136,14 @@ export {
   addGa4UserSavedSettings,
   removeGa4UserSavedSettings,
 
-  saveAdjustApiKey,
-
   //adjust
   getAdjustOptions,
   pullAdjustData,
   fetchEvents,
+
+  //adjust properties
+  saveAdjustApiKey,
+  getAdjustApiKeys,
+  deleteAdjustApiKey,
 
 };

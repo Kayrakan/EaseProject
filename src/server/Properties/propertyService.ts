@@ -36,17 +36,16 @@ interface UserSavedSettings {
     sheetName: string;
 }
 
-// var ui = SpreadsheetApp.getUi();
 
 
 // Function to add a connected platform
 export function addConnectedPlatform(platform: string, settings: PlatformSettings, overwrite: boolean = false): GoogleAppsScript.Properties.Properties {
     const userProperties = PropertiesService.getUserProperties();
     const connectedPlatforms = getConnectedPlatforms();
+
     if (overwrite || !connectedPlatforms[platform]) {
         connectedPlatforms[platform] = settings;
-        userProperties.setProperty('connectedPlatforms', JSON.stringify(connectedPlatforms));
-        return userProperties;
+        return userProperties.setProperty('connectedPlatforms', JSON.stringify(connectedPlatforms));
     }
     return userProperties || null;
 }

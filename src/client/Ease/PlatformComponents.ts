@@ -9,7 +9,7 @@ import Adjust from './components/Platforms/Adjust/Adjust';
 const platformComponents: { [key: string]: React.ComponentType } = {
     ga4: GoogleAnalytics,
     google_ads: GoogleAds,
-    facebook_ads: FacebookAds,
+    facebook: FacebookAds,
     // Add other mappings here
     adjust: Adjust,
 

@@ -16,6 +16,8 @@ declare namespace GoogleAppsScript {
             getRefreshToken(): string;
             getExpirationTime(): number;
             reset(): void;
+            getTokenType(): string; // Add this line
+
         }
 
         function createService(serviceName: string): OAuth2Service;

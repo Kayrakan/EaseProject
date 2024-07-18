@@ -19,7 +19,7 @@ interface DataSource {
 const dataSources: DataSource[] = [
     { name: 'Google Analytics', id: 'google_analytics', icon: googleAnalyticsIcon },
     { name: 'Google Ads', id: 'google_ads', icon: googleAdsIcon },
-    { name: 'Facebook Ads', id: 'facebook_ads', icon: facebookIcon },
+    { name: 'Facebook Ads', id: 'facebook', icon: facebookIcon },
     { name: 'Snapchat Ads', id: 'snapchat_ads', icon: snapchatIcon },
     { name: 'Criteo', id: 'criteo', icon: criteoIcon },
     { name: 'Adjust', id: 'adjust', icon: adjustIcon },
@@ -37,9 +37,11 @@ const ConnectDataSource: React.FC = () => {
 
             if (dataSourceId === 'google_analytics' || dataSourceId === 'google_ads') {
                 authUrl = await serverFunctions.getOAuthURL(dataSourceId);
-            } else if (dataSourceId === 'facebook_ads') {
-                authUrl = await serverFunctions.getFacebookOAuthURL();
+            } else if (dataSourceId === 'facebook') {
+                // authUrl = await serverFunctions.getFacebookOAuthURL();
                 console.log('OAuth URL:', authUrl);
+                navigate('/facebook-connect');
+
                 // window.open(authUrl, '_blank');
             } else if (dataSourceId === 'snapchat_ads') {
                 // Add logic for Snapchat Ads OAuth
@@ -63,8 +65,8 @@ const ConnectDataSource: React.FC = () => {
 
     const handleReset = async (dataSourceId: string) => {
         try {
-            if (dataSourceId === 'facebook_ads') {
-                await serverFunctions.resetFacebookOAuth();
+            if (dataSourceId === 'facebook') {
+                // await serverFunctions.resetFacebookOAuth();
                 alert('Facebook OAuth has been reset.');
             }
             // Add similar logic for other data sources if needed

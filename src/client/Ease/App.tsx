@@ -3,6 +3,7 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import EaseApp from './components/EaseApp';
 import PlatformPage from './PlatformPage.tsx';
 import AdjustConnect from './components/Platforms/Adjust/AdjustConnect.tsx';
+import FacebookConnect from './components/Platforms/Meta/FacebookConnect.tsx';
 import { css, Global } from '@emotion/react';
 
 const App: React.FC = () => {
@@ -23,6 +24,8 @@ const App: React.FC = () => {
                 <Route path="/" element={<EaseApp />} />
                 <Route path="/platform/:id" element={<PlatformPage />} />
                 <Route path="/adjust-connect" element={<AdjustConnect />} />
+                <Route path="/facebook-connect" element={<FacebookConnect />} />
+
             </Routes>
         </Router>
         </>

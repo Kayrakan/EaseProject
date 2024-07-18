@@ -1,24 +1,48 @@
-import { getOAuthServiceFacebook } from '../Auth/facebook';
+import { getUserOAuthInformation, reauthenticateIfNeeded } from '../Auth/facebook';
 
-// var ui = SpreadsheetApp.getUi();
+
+
+export function fetchFacebookAdAccounts(userId: string): any {
+    const oauthInfo = getUserOAuthInformation(userId);
+    if (!oauthInfo || !oauthInfo.accessToken) {
+        return { error: 'Not authorized. Please authorize the app first.' };
+    }
+
+    const url = `https://graph.facebook.com/v20.0/me/adaccounts?access_token=${oauthInfo.accessToken}`;
+    const response = UrlFetchApp.fetch(url);
+    if (response.getResponseCode() === 200) {
+        return JSON.parse(response.getContentText());
+    } else {
+        console.error('Error fetching ad accounts:', response.getContentText());
+        return { error: 'Failed to fetch ad accounts' };
+    }
+}
+
 export function fetchFacebookAdsData(options: {
     adAccount: string;
     startDate: string;
     endDate: string;
     fields: string[];
+    breakdown: string;
+    identifier: string;
 }) {
+    if (!reauthenticateIfNeeded(options.identifier)) {
+        return { error: 'Reauthentication required. Please reauthenticate.' };
+    }
+
     try {
-        const service = getOAuthServiceFacebook();
-        if (!service.hasAccess()) {
+        const oauthInfo = getUserOAuthInformation(options.identifier);
+        if (!oauthInfo || !oauthInfo.accessToken) {
             return { error: 'Not authorized. Please authorize the app first.' };
         }
 
-        const url = `https://graph.facebook.com/v20.0/act_${options.adAccount}/insights`;
+        const url = `https://graph.facebook.com/v20.0/${options.adAccount}/insights`;
         const params = {
-            access_token: service.getAccessToken(),
+            access_token: oauthInfo.accessToken,
             time_range: JSON.stringify({ since: options.startDate, until: options.endDate }),
             fields: options.fields.join(','),
-            level: 'ad'  // Specify the level you want to fetch data for (ad, adset, campaign)
+            level: 'ad',
+            breakdowns: options.breakdown,
         };
 
         const response = UrlFetchApp.fetch(url, {
@@ -32,7 +56,6 @@ export function fetchFacebookAdsData(options: {
         if (response.getResponseCode() !== 200) {
             return { error: data.error.message };
         }
-        // ui.alert('report id return')
 
         const reportRunId = data.report_run_id;
         return { reportRunId };
@@ -43,37 +66,32 @@ export function fetchFacebookAdsData(options: {
     }
 }
 
-export function fetchFacebookReportStatus(reportRunId: string) {
+export function fetchFacebookReportStatus(reportRunId: string, identifier: string) {
+    if (!reauthenticateIfNeeded(identifier)) {
+        return { error: 'Reauthentication required. Please reauthenticate.' };
+    }
+
     try {
-        const service = getOAuthServiceFacebook();
-        if (!service.hasAccess()) {
+        const oauthInfo = getUserOAuthInformation(identifier);
+        if (!oauthInfo || !oauthInfo.accessToken) {
             return { error: 'Not authorized. Please authorize the app first.' };
         }
 
-
         const url = `https://graph.facebook.com/v20.0/${reportRunId}`;
-        // ui.alert('status check')
 
         const response = UrlFetchApp.fetch(url, {
             method: 'get',
             headers: {
-                Authorization: `Bearer ${service.getAccessToken()}`,
+                Authorization: `Bearer ${oauthInfo.accessToken}`,
             },
             muteHttpExceptions: true,
         });
-        // ui.alert('status check2')
 
         const data = JSON.parse(response.getContentText());
-        // ui.alert('status check data ')
-
 
         if (response.getResponseCode() !== 200) {
-            // ui.alert('status check not 200')
-
             return { error: data.error.message };
         }
-
-        // ui.alert('return data')
 
         return data;
     } catch (error) {
@@ -83,10 +101,14 @@ export function fetchFacebookReportStatus(reportRunId: string) {
     }
 }
 
-export function fetchFacebookReportResults(reportRunId: string) {
+export function fetchFacebookReportResults(reportRunId: string, identifier: string) {
+    if (!reauthenticateIfNeeded(identifier)) {
+        return { error: 'Reauthentication required. Please reauthenticate.' };
+    }
+
     try {
-        const service = getOAuthServiceFacebook();
-        if (!service.hasAccess()) {
+        const oauthInfo = getUserOAuthInformation(identifier);
+        if (!oauthInfo || !oauthInfo.accessToken) {
             return { error: 'Not authorized. Please authorize the app first.' };
         }
 
@@ -95,7 +117,7 @@ export function fetchFacebookReportResults(reportRunId: string) {
         const response = UrlFetchApp.fetch(url, {
             method: 'get',
             headers: {
-                Authorization: `Bearer ${service.getAccessToken()}`,
+                Authorization: `Bearer ${oauthInfo.accessToken}`,
             },
             muteHttpExceptions: true,
         });
@@ -110,16 +132,13 @@ export function fetchFacebookReportResults(reportRunId: string) {
             return { error: 'No data returned' };
         }
 
-        // Get all unique keys (columns) from the response data
         const allFields: string[] = Array.from(new Set(data.data.flatMap((entry: { [key: string]: any }) => Object.keys(entry))));
         const rows = data.data.map((entry: { [key: string]: any }) => allFields.map(field => entry[field] ?? ''));
 
         const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Facebook Ads') || SpreadsheetApp.getActiveSpreadsheet().insertSheet('Facebook Ads');
         sheet.clearContents();
 
-        // Write the headers
         sheet.appendRow(allFields);
-        // Write the data
         sheet.getRange(2, 1, rows.length, allFields.length).setValues(rows);
 
         return { data: rows };
@@ -129,10 +148,6 @@ export function fetchFacebookReportResults(reportRunId: string) {
         return { error: `Failed to fetch report results: ${e.message}` };
     }
 }
-
-
-
-
 
 export function getFacebookAvailableFields() {
     return {

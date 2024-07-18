@@ -28,7 +28,7 @@ const platformsData: Platform[] = [
         icon: googleIcon, // replace with actual path to icon
     },
     {
-        id: 'facebook_ads',
+        id: 'facebook',
         name: 'Facebook Ads',
         description: 'Track your Facebook Ads performance.',
         icon: facebookIcon, // replace with actual path to icon

@@ -1,13 +1,14 @@
 // import { HttpClient, HttpRequest } from 'google-apps-script';
 // import { PropertiesService } from 'google-apps-script';
 
-import { getConnectedPlatformSettings} from "../propertyService.ts";
+// import { getConnectedPlatformSettings} from "../propertyService.ts";
 // Adjust API URL
 const ADJUST_API_URL = 'https://automate.adjust.com/reports-service/csv_report';
 const ADJUST_EVENTS_URL = 'https://automate.adjust.com/reports-service/events';
 var ui = SpreadsheetApp.getUi();
 
 interface PullAdjustDataParams {
+    apiKey: string;
     dimensions: string[];
     metrics: string[];
     startDate: string;
@@ -128,36 +129,17 @@ function parseCSV(data: string): string[][] {
 
 
 export function pullAdjustData(params: PullAdjustDataParams) {
-    const { dimensions, metrics, startDate, endDate } = params;
-    // ui.alert('getting platform settings')
-    const adjustSettings = getConnectedPlatformSettings('Adjust');
-
-    if (!adjustSettings || !adjustSettings.adjust_api_key) {
-        ui.alert('settings or api key is not set')
-        throw new Error('API key is not set');
-    }
-
-    const apiKey = adjustSettings.adjust_api_key;
-
-    // ui.alert(apiKey);
-
-    // Manually construct the query string
-    // ui.alert('query params ');
+    const { apiKey, dimensions, metrics, startDate, endDate } = params;
 
     const queryParams = toQueryString({
         dimensions: dimensions.join(','),
         metrics: metrics.join(','),
-        date_period: `${startDate}:${endDate}`, // Adjust API uses `date_period`
+        date_period: `${startDate}:${endDate}`,
     });
-    // ui.alert('url');
 
     const url = `${ADJUST_API_URL}?${queryParams}`;
-    // ui.alert(url);
 
     try {
-
-        ui.alert('getting response');
-
         const response = UrlFetchApp.fetch(url, {
             method: 'GET',
             headers: {
@@ -168,51 +150,38 @@ export function pullAdjustData(params: PullAdjustDataParams) {
 
         if (response.getResponseCode() !== 200) {
             Logger.log(`Error response code: ${response.getResponseCode()} - ${response.getContentText()}`);
-            // return
             throw new Error(`Error, failed to fetch data. response code: ${response.getResponseCode()} - ${response.getContentText()}`);
         }
 
         const data = response.getContentText();
-        // Process data if needed
-
         const parsedData = parseCSV(data);
 
-        // Get the active spreadsheet and the active sheet
         const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
         const sheet = spreadsheet.getActiveSheet();
 
-        // Clear any existing content in the sheet
         sheet.clear();
-
-        // Write data to the sheet
         sheet.getRange(1, 1, parsedData.length, parsedData[0].length).setValues(parsedData);
 
         return 'Data written to spreadsheet successfully';
     } catch (error) {
         if (error instanceof Error) {
             return error.message;
-            // Logger.log(`Error fetching Adjust data: ${error.message}`);
-            // throw new Error(`Failed to fetch data from Adjust: ${error.message}`);
         } else {
-            return 'unkown error occured';
-
             Logger.log('Unknown error occurred');
             throw new Error('Failed to fetch data from Adjust: Unknown error');
         }
     }
 }
-export function fetchEvents(): Event[] {
-    const adjustSettings = getConnectedPlatformSettings('Adjust');
 
-    if (!adjustSettings || !adjustSettings.adjust_api_key) {
-        throw new Error('API key is not set');
-    }
-
-    const apiKey = adjustSettings.adjust_api_key;
-    const url = `${ADJUST_EVENTS_URL}`;
+export function fetchEvents(apiKey: string): Event[] {
+    ui.alert('getting Platform Settings');
 
     try {
-        // ui.alert('getting events')
+        ui.alert('api key' + apiKey);
+
+        const url = `${ADJUST_EVENTS_URL}`;
+
+        ui.alert('getting events');
         const response = UrlFetchApp.fetch(url, {
             method: 'GET',
             headers: {
@@ -223,13 +192,16 @@ export function fetchEvents(): Event[] {
 
         if (response.getResponseCode() !== 200) {
             Logger.log(`Error response code: ${response.getResponseCode()} - ${response.getContentText()}`);
-            throw new Error('Failed to fetch events from Adjust');
+            throw new Error(`Error response code: ${response.getResponseCode()} - ${response.getContentText()}`);
         }
+
+        ui.alert('returning events');
+        ui.alert(response.getContentText());
 
         return JSON.parse(response.getContentText()) as Event[];
     } catch (error) {
         if (error instanceof Error) {
-            // ui.alert('error occured');
+            ui.alert('error occurred: ' + error.message);
             Logger.log(`Error fetching Adjust events: ${error.message}`);
             throw new Error(`Failed to fetch events from Adjust: ${error.message}`);
         } else {
@@ -238,3 +210,4 @@ export function fetchEvents(): Event[] {
         }
     }
 }
+
