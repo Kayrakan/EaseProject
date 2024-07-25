@@ -11,6 +11,7 @@ export interface FacebookPlatformSettings {
 export interface FbOAuthInformation {
     accessToken: string;
     refreshToken?: string;
+    dateTaken?: number;
     expiresIn?: number;
     tokenType?: string;
 }
@@ -34,10 +35,10 @@ export interface FbUserSavedSettings {
     id: string;
     name: string;
     description: string;
-    selectedAccount: SelectOption | null;
-    selectedProperty: SelectOption | null;
-    selectedDimensions: SelectOption[];
-    selectedMetrics: SelectOption[];
+    selectedAccount: SelectOption | null; // this will be the ad account, for example: act_955477841883144
+    selectedFields: SelectOption[]; // Array of selected fields
+    selectedBreakdowns: SelectOption[]; // Array of selected breakdowns
+    filterSettings: { filter: string, operator: string, value: string }[]; // Filter settings
     startDate: string;
     endDate: string;
     datePreset: string;
@@ -56,11 +57,11 @@ export function getPlatformSettings(): FacebookPlatformSettings {
 
 export function savePlatformSettings(settings: FacebookPlatformSettings) {
     try {
-        ui.alert('Saving new platform settings: ' + JSON.stringify(settings));
+        // ui.alert('Saving new platform settings: ' + JSON.stringify(settings));
 
         PropertiesService.getScriptProperties().setProperty('facebook', JSON.stringify(settings));
 
-        ui.alert('Platform settings saved successfully.');
+        // ui.alert('Platform settings saved successfully.');
     } catch (error) {
         const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
         ui.alert('Error saving platform settings: ' + errorMessage);
@@ -68,25 +69,47 @@ export function savePlatformSettings(settings: FacebookPlatformSettings) {
     }
 }
 
+export function getSavedTemplates(): FbUserSavedSettings[] {
+    const platformSettings = getPlatformSettings();
+    const userAccount = platformSettings.accounts.find(account => account.email === Session.getActiveUser().getEmail());
+    return userAccount ? userAccount.savedSettings : [];
+}
 
 
-// function getStoredOAuthInformation(userId: string) {
-//     const storedInfo = PropertiesService.getUserProperties().getProperty('oauthInfo_' + userId);
-//     return storedInfo ? JSON.parse(storedInfo) : null;
-// }
-//
-// function makeAuthorizedRequest(userId: string, url: string) {
-//     const oauthInfo = getStoredOAuthInformation(userId);
-//     if (oauthInfo) {
-//         const service = getOAuthServiceFacebook(userId);
-//         setOAuthInfoToService(service, oauthInfo);
-//         const response = UrlFetchApp.fetch(url, {
-//             headers: {
-//                 Authorization: 'Bearer ' + service.getAccessToken()
-//             }
-//         });
-//         Logger.log(response.getContentText());
-//     } else {
-//         Logger.log('User is not authorized.');
-//     }
-// }
+export function saveTemplate(template: FbUserSavedSettings) {
+    const platformSettings = getPlatformSettings();
+    const userEmail = Session.getActiveUser().getEmail();
+    let userAccount = platformSettings.accounts.find(account => account.email === userEmail);
+
+    if (!userAccount) {
+        userAccount = {
+            name: userEmail,
+            email: userEmail,
+            uniqueId: '',
+            date: new Date().toISOString(),
+            oauthInformation: { accessToken: '' },
+            savedSettings: [],
+            customSettings: {},
+        };
+        platformSettings.accounts.push(userAccount);
+    }
+
+    userAccount.savedSettings.push(template);
+    savePlatformSettings(platformSettings);
+    ui.alert('Template saved successfully.');
+}
+
+
+export function deleteTemplate(templateId: string) {
+    const platformSettings = getPlatformSettings();
+    const userEmail = Session.getActiveUser().getEmail();
+    const userAccount = platformSettings.accounts.find(account => account.email === userEmail);
+
+    if (userAccount) {
+        userAccount.savedSettings = userAccount.savedSettings.filter(setting => setting.id !== templateId);
+        savePlatformSettings(platformSettings);
+        ui.alert('Template deleted successfully.');
+    } else {
+        ui.alert('User account not found.');
+    }
+}

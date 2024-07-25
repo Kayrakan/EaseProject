@@ -8,7 +8,9 @@ interface OAuthRequest {
     };
 }
 var ui = SpreadsheetApp.getUi();
-
+const FACEBOOK_GRAPH_API_VERSION = "v20.0";
+const FACEBOOK_APP_ID = "462039139878744";
+const FACEBOOK_APP_SECRET = "c1cb0a7c0a1b2657121ff0000bb01287"
 export function getOAuthServiceFacebook() {
     return OAuth2.createService('Facebook')
         .setAuthorizationBaseUrl('https://www.facebook.com/dialog/oauth')
@@ -17,11 +19,40 @@ export function getOAuthServiceFacebook() {
         .setClientSecret('c1cb0a7c0a1b2657121ff0000bb01287')
         .setCallbackFunction('authCallbackFacebook')
         .setPropertyStore(PropertiesService.getUserProperties())
-        .setScope('public_profile,email')
+        .setScope('public_profile,email, ads_management,ads_read,read_insights')
         .setParam('config_id', '1499404937332395')
         .setParam('access_type', 'offline')
         .setParam('approval_prompt', 'force')
         .setRedirectUri('https://script.google.com/macros/d/1OLxMlcmo3aRmXjnhffrBOsYJxRmYujGPHXRfF31DmxdMkTJ3kx6G1YDq/usercallback');
+}
+
+
+function getLongLivedFacebookToken(shortLivedToken: string) {
+    try {
+        const longLivedOath = exchangeForLongLivedToken(shortLivedToken);
+        return longLivedOath;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            ui.alert('couldnt get long lived token ' + error.message)
+            throw new Error('Error exchanging token: ' + error.message);
+        } else {
+            ui.alert('couldnt get long lived token ' + String(error))
+
+            throw new Error('Error exchanging token: ' + String(error));
+        }
+    }
+}
+
+function exchangeForLongLivedToken(shortLivedToken: string) {
+    const url = `https://graph.facebook.com/${FACEBOOK_GRAPH_API_VERSION}/oauth/access_token?grant_type=fb_exchange_token&client_id=${FACEBOOK_APP_ID}&client_secret=${FACEBOOK_APP_SECRET}&fb_exchange_token=${shortLivedToken}`;
+    const response = UrlFetchApp.fetch(url);
+    const resultOauth = JSON.parse(response.getContentText());
+    // ui.alert('result long token : ' + JSON.stringify(resultOauth));
+    if (resultOauth.access_token) {
+        return resultOauth;
+    } else {
+        throw new Error('Failed to exchange token: ' + resultOauth.error.message);
+    }
 }
 
 export function authCallbackFacebook(request: OAuthRequest): GoogleAppsScript.HTML.HtmlOutput {
@@ -29,10 +60,15 @@ export function authCallbackFacebook(request: OAuthRequest): GoogleAppsScript.HT
     const isAuthorized = service.handleCallback(request);
 
     if (isAuthorized) {
-        const userInfo = fetchFacebookUserInfo(service.getAccessToken());
+        const shortLivedToken = service.getAccessToken();
+        // ui.alert('short lived token ' + shortLivedToken);
+        const longLivedOath = getLongLivedFacebookToken(shortLivedToken);
+        // ui.alert('long lived token ' + JSON.stringify(longLivedOath));
+
+        const userInfo = fetchFacebookUserInfo(longLivedOath.access_token);
         if (userInfo) {
             addFacebookPlatform();
-            saveUserOAuthInformation(userInfo, service); // Save OAuth information and user info
+            saveUserOAuthInformation(userInfo, service, longLivedOath); // Save OAuth information and user info
             return HtmlService.createHtmlOutput('Success! You can close this tab.');
         } else {
             return HtmlService.createHtmlOutput('Failed to retrieve user information.');
@@ -104,11 +140,12 @@ function fetchFacebookUserInfo(accessToken: string) {
     }
 }
 
-export function saveUserOAuthInformation(userInfo: any, service: GoogleAppsScript.OAuth2.OAuth2Service) {
+export function saveUserOAuthInformation(userInfo: any, service: GoogleAppsScript.OAuth2.OAuth2Service, longLivedOath: any) {
     const oauthInformation: FbOAuthInformation = {
-        accessToken: service.getAccessToken(),
+        accessToken: longLivedOath.access_token,
         refreshToken: service.getRefreshToken ? service.getRefreshToken() : undefined,
-        expiresIn: Date.now() + 3600 * 1000,  // Assuming 1 hour validity, you may adjust based on actual expiration time received
+        dateTaken: Date.now(),  // Assuming 1 hour validity, you may adjust based on actual expiration time received
+        expiresIn: longLivedOath.expires_in
         // tokenType: service.getTokenType(),
     };
 
@@ -127,9 +164,14 @@ export function saveUserOAuthInformation(userInfo: any, service: GoogleAppsScrip
             savedSettings: []
         };
         platformSettings.accounts.push(newUserAccount);
+        // ui.alert('new oauth is created: ' + newUserAccount);
     } else {
         // If the user account exists, update the oauthInformation
+        // ui.alert('old oauth' + JSON.stringify(platformSettings.accounts[userAccountIndex].oauthInformation));
+        // ui.alert('long new oauth' + JSON.stringify(oauthInformation));
         platformSettings.accounts[userAccountIndex].oauthInformation = oauthInformation;
+        // ui.alert('new oauth settings saved' + JSON.stringify(platformSettings.accounts[userAccountIndex].oauthInformation));
+
     }
 
     savePlatformSettings(platformSettings);
@@ -138,26 +180,51 @@ export function saveUserOAuthInformation(userInfo: any, service: GoogleAppsScrip
 export function getUserOAuthInformation(identifier: string): FbOAuthInformation | null {
     const platformSettings = getPlatformSettings();
     const userAccount = platformSettings.accounts.find(account => account.uniqueId === identifier || account.email === identifier);
-    if (userAccount && userAccount.oauthInformation.expiresIn && userAccount.oauthInformation.expiresIn < Date.now()) {
-        // Token has expired
-        ui.alert('token expired');
+
+    if (!userAccount) {
+        ui.alert('User account not found.');
         return null;
     }
-    return userAccount ? userAccount.oauthInformation : null;
+
+    // ui.alert('oauth platform user Account :' + JSON.stringify(userAccount));
+
+    // Ensure oauthInformation and its properties are defined
+    if (!userAccount.oauthInformation || userAccount.oauthInformation.dateTaken === undefined || userAccount.oauthInformation.expiresIn === undefined) {
+        ui.alert('OAuth information or required properties are missing.');
+        return null;
+    }
+
+    const currentTime = Date.now(); // Current time in milliseconds
+    const tokenAge = currentTime - userAccount.oauthInformation.dateTaken; // Token age in milliseconds
+
+    const expiresInMilliseconds = userAccount.oauthInformation.expiresIn * 1000; // Convert expiresIn from seconds to milliseconds
+
+    // ui.alert('Current time: ' + currentTime);
+    // ui.alert('Token age: ' + tokenAge);
+    // ui.alert('Expires in: ' + expiresInMilliseconds);
+
+    // Check if token has expired
+    if (tokenAge > expiresInMilliseconds) {
+        ui.alert('Token has expired.');
+        return null;
+    }
+
+    return userAccount.oauthInformation;
 }
 
 
+
 export function resetFacebookOAuth(userId: string) {
-    ui.alert('getting service to reset')
+    // ui.alert('getting service to reset')
     const service = getOAuthServiceFacebook();
     service.reset();
-    ui.alert('service is reset, getting platform settings')
+    // ui.alert('service is reset, getting platform settings')
 
     let platformSettings: FacebookPlatformSettings = getPlatformSettings();
-    ui.alert('platform settings ' + JSON.stringify(platformSettings));
+    // ui.alert('platform settings ' + JSON.stringify(platformSettings));
 
     platformSettings.accounts = platformSettings.accounts.filter(account => account.uniqueId !== userId);
-    ui.alert('new platforms settings' + JSON.stringify(platformSettings));
+    // ui.alert('new platforms settings' + JSON.stringify(platformSettings));
 
     savePlatformSettings(platformSettings);
 }
@@ -170,7 +237,7 @@ export function getConnectedFacebookAccounts(): FbAccountSettings[] {
 
 export function reauthenticateIfNeeded(userId: string): boolean {
     const oauthInfo = getUserOAuthInformation(userId);
-    if (!oauthInfo || !oauthInfo.accessToken || !oauthInfo.expiresIn || oauthInfo.expiresIn < Date.now()) {
+    if (!oauthInfo || !oauthInfo.accessToken ) {
         const url = getFacebookOAuthURL();
         // Trigger reauthentication flow
         ui.showModalDialog(HtmlService.createHtmlOutput(`
